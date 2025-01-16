@@ -6,6 +6,7 @@ const MARKET_STACK_QUOTE_URL = `${process.env.REACT_APP_MARKETSTACK_BASE_URL}/in
 const MARKET_STACK_TICKER_URL = `${process.env.REACT_APP_MARKETSTACK_BASE_URL}/tickers`;
 
 function StockQuote(props) {
+    console.log('props: ' + JSON.stringify(props));
     const [quote, setQuote] = useState({
         price: '--',
         var: '--',
@@ -64,7 +65,7 @@ function StockQuote(props) {
             });
         });
     }, [props.symbol]);
-
+    
     useEffect(() => {
         fetchWithRetry(MARKET_STACK_TICKER_URL, {
             access_key: process.env.REACT_APP_MARKETSTACK_ACCESS_KEY,
@@ -75,17 +76,28 @@ function StockQuote(props) {
                 console.warn('No data returned from the API.');
                 return;
             }
-            setStock({
-                stockExchange: data.data.stock_exchange?.acronym || 'N/A', // Fallback for missing acronym
-                name: data.data.name || 'Unknown', // Fallback for missing name
+
+            data.data.forEach((item) => {
+                if (item?.stock_exchange?.acronym) {
+                    console.log('Acronym:', item.stock_exchange.acronym);
+                    setStock({
+                        stockExchange: item?.stock_exchange?.acronym || 'N/A', // Fallback for missing acronym
+                        name: item?.stock_exchange?.name || 'Unknown' // Fallback for missing name
+                    });
+                }
             });
+            
         })
         .catch((error) => {
             console.error('API Error:', error); // Log any errors for debugging
         });
-    });    
+    });
 
     const varColor = quote.var < 0 ? 'text-red-500' : 'text-green-500';
+
+    console.log(props.symbol);
+    console.log(stock.name);
+    console.log(stock.stockExchange);
 
     return (
         <div className={'quote rounded-lg shadow-md p-4 bg-gray-800'}>
